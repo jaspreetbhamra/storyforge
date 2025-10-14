@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# Model files (too large for git)
+*.bin
+*.safetensors
+*.pt
+*.pth
+models/checkpoints/*
+!models/checkpoints/.gitkeep
+models/constitutional/*
+!models/constitutional/.gitkeep
+models/rlhf/*
+!models/rlhf/.gitkeep
+
+# Data files
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.csv
+*.jsonl
+*.parquet
+
+# Logs and outputs
+outputs/
+*.log
+wandb/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Misc
+*.pkl
+*.pickle

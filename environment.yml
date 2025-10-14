@@ -1,0 +1,26 @@
+name: storyforge
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.13
+  - pip
+  - pip:
+      - torch
+      - torchvision
+      - torchaudio
+      - transformers
+      - accelerate
+      - peft
+      - bitsandbytes
+      - datasets
+      - sentencepiece
+      - protobuf
+      - wandb
+      - ipython
+      - jupyter
+      - tqdm
+      - rich
+      - python-dotenv
+      - streamlit
+      - plotly

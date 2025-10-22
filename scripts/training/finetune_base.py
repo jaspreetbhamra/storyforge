@@ -4,11 +4,11 @@ Fine-tunes Llama 3.1 8B on creative writing data
 """
 
 import json
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import torch
-import wandb
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import (
@@ -19,6 +19,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+import wandb
 
 
 @dataclass
@@ -74,12 +76,40 @@ class ModelConfig:
     wandb_run_name: str = "base_lora_finetune"
 
 
+def get_device_config():
+    """Get appropriate device configuration for current platform"""
+    import torch
+
+    if torch.cuda.is_available():
+        # CUDA (Linux/Windows with NVIDIA GPU)
+        return {
+            "device_map": "auto",
+            "torch_dtype": torch.float16,
+        }
+    elif torch.backends.mps.is_available():
+        # Apple Silicon
+        return {
+            "device_map": {"": "mps"},
+            "torch_dtype": torch.float16,
+        }
+    else:
+        # CPU fallback
+        return {
+            "device_map": {"": "cpu"},
+            "torch_dtype": torch.float32,  # CPU works better with float32
+        }
+
+
 class StoryForgeTrainer:
     """Handles fine-tuning of Llama with LoRA"""
 
     def __init__(self, config: ModelConfig):
         self.config = config
-        self.device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = (
+            "mps"
+            if torch.backends.mps.is_available()
+            else ("cuda" if torch.cuda.is_available() else "cpu")
+        )
         print(f"🔧 Using device: {self.device}")
 
     def load_model_and_tokenizer(self):
@@ -97,13 +127,15 @@ class StoryForgeTrainer:
         else:
             bnb_config = None
 
+        # Then use it:
+        device_config = get_device_config()
+
         # Load model
         model = AutoModelForCausalLM.from_pretrained(
             self.config.model_name,
             quantization_config=bnb_config,
-            device_map="auto",
-            torch_dtype=torch.float16 if self.config.use_4bit else torch.float32,
             trust_remote_code=True,
+            **device_config,
         )
 
         # Prepare model for k-bit training
@@ -306,6 +338,13 @@ class StoryForgeTrainer:
 
 def main():
     """Main execution"""
+
+    # Add this to your config
+    if os.getenv("COLAB_GPU"):  # Colab environment
+        model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    else:  # Local testing
+        model_name = "meta-llama/Llama-3.2-1B-Instruct"
+
     print(
         """
     ╔════════════════════════════════════════════╗
@@ -318,7 +357,10 @@ def main():
     )
 
     # Create config
-    config = ModelConfig()
+    if torch.backends.mps.is_available():
+        config = ModelConfig(use_4bit=False, model_name=model_name)
+    else:
+        config = ModelConfig(model_name=model_name)
 
     # Create trainer
     trainer = StoryForgeTrainer(config)

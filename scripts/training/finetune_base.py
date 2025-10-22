@@ -32,8 +32,10 @@ class ModelConfig:
     use_4bit: bool = True  # 4-bit quantization for memory efficiency
 
     # LoRA settings
-    lora_r: int = 16  # Rank of LoRA matrices
-    lora_alpha: int = 32  # Scaling parameter
+    # lora_r: int = 16  # Rank of LoRA matrices
+    # lora_alpha: int = 32  # Scaling parameter
+    lora_r: int = 8  # Was 16
+    lora_alpha: int = 16  # Was 32
     lora_dropout: float = 0.05
     lora_target_modules: list = field(
         default_factory=lambda: [
@@ -50,12 +52,15 @@ class ModelConfig:
     # Data settings
     data_path: str = "data/processed"
     max_seq_length: int = 2048
+    # max_seq_length: int = 1024  # Was 2048
 
     # Training settings
     output_dir: str = "models/checkpoints/base_model"
     num_train_epochs: int = 3
-    per_device_train_batch_size: int = 2  # Small for memory
-    gradient_accumulation_steps: int = 8  # Effective batch size = 2*8 = 16
+    # per_device_train_batch_size: int = 2  # Small for memory
+    # gradient_accumulation_steps: int = 8  # Effective batch size = 2*8 = 16
+    per_device_train_batch_size: int = 1  # Was 2
+    gradient_accumulation_steps: int = 16  # Was 8
     learning_rate: float = 2e-4
     warmup_steps: int = 100
     logging_steps: int = 10
@@ -213,8 +218,6 @@ class StoryForgeTrainer:
                 padding=False,  # Dynamic padding in collator
                 return_tensors=None,
             )
-            # Labels are the same as input_ids for CLM
-            tokenized["labels"] = tokenized["input_ids"].copy()
             return tokenized
 
         # Tokenize datasets

@@ -51,16 +51,16 @@ class ModelConfig:
 
     # Data settings
     data_path: str = "data/processed"
-    max_seq_length: int = 2048
-    # max_seq_length: int = 1024  # Was 2048
+    # max_seq_length: int = 2048
+    max_seq_length: int = 1024  # Was 2048
 
     # Training settings
     output_dir: str = "models/checkpoints/base_model"
-    num_train_epochs: int = 3
+    num_train_epochs: int = 2
     # per_device_train_batch_size: int = 2  # Small for memory
     # gradient_accumulation_steps: int = 8  # Effective batch size = 2*8 = 16
-    per_device_train_batch_size: int = 1  # Was 2
-    gradient_accumulation_steps: int = 16  # Was 8
+    per_device_train_batch_size: int = 2  # Was 2
+    gradient_accumulation_steps: int = 8  # Was 8
     learning_rate: float = 2e-4
     warmup_steps: int = 100
     logging_steps: int = 10
@@ -293,7 +293,7 @@ class StoryForgeTrainer:
         trainer = Trainer(
             model=model,
             args=training_args,
-            train_dataset=tokenized_dataset["train"],
+            train_dataset=tokenized_dataset["train"].select(range(20000)),
             eval_dataset=tokenized_dataset["validation"],
             data_collator=data_collator,
         )
